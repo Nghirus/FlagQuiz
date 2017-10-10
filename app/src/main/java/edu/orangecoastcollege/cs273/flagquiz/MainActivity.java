@@ -1,6 +1,7 @@
 package edu.orangecoastcollege.cs273.flagquiz;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -25,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Flag Quiz";
 
-    private static final int FLAGS_IN_QUIZ = 10;
+    private static final int FLAGS_IN_QUIZ = 5;
 
     private Button[] mButtons = new Button[4];
     private List<Country> mAllCountriesList;  // all the countries loaded from JSON
@@ -179,6 +182,31 @@ public class MainActivity extends AppCompatActivity {
             mCorrectGuesses++;
             mAnswerTextView.setText(mCorrectCountry.getName());
             mAnswerTextView.setTextColor(ContextCompat.getColor(this, R.color.correct_answer));
+
+            if (mCorrectGuesses < FLAGS_IN_QUIZ)
+            {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadNextFlag();
+                    }
+                }, 2000);
+            }
+            else
+            {
+                AlertDialog.Builder builder= new AlertDialog.Builder(this);
+                //builder.setMessage(getString(R.string.results,mTotalGuesses, (double) mCorrectGuesses / mTotalGuesses));
+                builder.setMessage(getString(R.string.results, mTotalGuesses,(double) mCorrectGuesses / mTotalGuesses));
+                builder.setPositiveButton(R.string.reset_quiz, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        resetQuiz();
+                    }
+                });
+                builder.setCancelable(false);
+                builder.create();
+                builder.show();
+            }
         }
         else
         {
@@ -188,27 +216,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        if (mCorrectGuesses < FLAGS_IN_QUIZ)
-        {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                loadNextFlag();
-                }
-            }, 2000);
-        }
-        else
-        {
-            AlertDialog.Builder builder= new AlertDialog.Builder(this);
-            builder.setMessage(getString(R.string.results,mTotalGuesses, (double) mCorrectGuesses / mTotalGuesses));
-            builder.setPositiveButton(R.string.reset_quiz, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    resetQuiz();
-                }
-            });
-            builder.setCancelable(false);
-        }
         // TODO: then display correct answer in green text.  Also, disable all 4 buttons (can't keep guessing once it's correct)
         // TODO: Nested in this decision, if the user has completed all 10 questions, show an AlertDialog
         // TODO: with the statistics and an option to Reset Quiz
@@ -220,5 +227,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //Make intent going to settings activity.
+        Intent settingsIntent = new Intent(this, SettingsActivity.class);
+        startActivity(settingsIntent);
+        return super.onOptionsItemSelected(item);
+    }
 }
